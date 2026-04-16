@@ -31,6 +31,12 @@ export class Chrome extends BaseAdapter {
     return ret[key] as T | undefined;
   }
 
+  onLocalStorageChanged(
+    callback: (changes: Record<string, { newValue?: unknown }>) => void
+  ): void {
+    chrome.storage.local.onChanged.addListener(callback);
+  }
+
   async setProxy(cfg: ProxyConfig): Promise<void> {
     await chrome.proxy.settings.set({
       value: cfg,
@@ -123,6 +129,24 @@ export class Chrome extends BaseAdapter {
       urls: ["<all_urls>"],
     });
   }
+
+  async createPeriodicAlarm(
+    name: string,
+    periodInMinutes: number
+  ): Promise<void> {
+    await chrome.alarms.create(name, { periodInMinutes });
+  }
+  async clearAlarm(name: string): Promise<void> {
+    await chrome.alarms.clear(name);
+  }
+  async getAllAlarmNames(): Promise<string[]> {
+    const all = await chrome.alarms.getAll();
+    return all.map((a) => a.name);
+  }
+  onAlarm(callback: (name: string) => void): void {
+    chrome.alarms.onAlarm.addListener((alarm) => callback(alarm.name));
+  }
+
   currentLocale(): string {
     return chrome.i18n.getUILanguage();
   }

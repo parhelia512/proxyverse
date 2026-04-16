@@ -28,13 +28,25 @@ export class WebBrowser extends BaseAdapter {
     return BrowserFlavor.Web;
   }
 
+  private storageListeners: ((
+    changes: Record<string, { newValue?: unknown }>
+  ) => void)[] = [];
+
   async set<T>(key: string, val: T): Promise<void> {
     localStorage.setItem(key, JSON.stringify(val));
+    const changes = { [key]: { newValue: val } };
+    this.storageListeners.forEach((cb) => cb(changes));
   }
   async get<T>(key: string): Promise<T | undefined> {
     let s: any;
     s = localStorage.getItem(key);
     return s && JSON.parse(s);
+  }
+
+  onLocalStorageChanged(
+    callback: (changes: Record<string, { newValue?: unknown }>) => void
+  ): void {
+    this.storageListeners.push(callback);
   }
 
   async setProxy(_: ProxyConfig): Promise<void> {
@@ -128,6 +140,19 @@ export class WebBrowser extends BaseAdapter {
   ): void {
     throw new Error("Method not implemented.");
   }
+  async createPeriodicAlarm(_: string, __: number): Promise<void> {
+    // no-op for local dev
+  }
+  async clearAlarm(_: string): Promise<void> {
+    // no-op for local dev
+  }
+  async getAllAlarmNames(): Promise<string[]> {
+    return [];
+  }
+  onAlarm(_: (name: string) => void): void {
+    // no-op for local dev
+  }
+
   currentLocale(): string {
     return "en-US";
   }
